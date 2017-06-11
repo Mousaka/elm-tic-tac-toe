@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, text, table, tr, td)
+import Html exposing (Html, div, text, table, tr, td, button)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import List.Nonempty exposing (..)
@@ -10,6 +10,7 @@ type alias Model =
     { turn : Mark
     , board : Nonempty (Nonempty Cell)
     , gameStatus : Status
+    , history : List Msg
     }
 
 
@@ -32,24 +33,51 @@ type Cell
 type Msg
     = Place ( Int, Int )
     | Reset
+    | Undo
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    ( updateHelper msg model, Cmd.none )
+
+
+updateHelper : Msg -> Model -> Model
+updateHelper msg model =
     case msg of
         Place pos ->
             if legalMove model.board pos then
-                ( place model pos
+                place model pos
+                    |> recordMsg msg
                     |> checkWin
                     |> checkDraw
                     |> nextPlayersTurn
-                , Cmd.none
-                )
             else
-                ( model, Cmd.none )
+                model
 
         Reset ->
-            init
+            initModel
+
+        Undo ->
+            undoLast model
+
+
+undoLast : Model -> Model
+undoLast model =
+    let
+        tailOfHistory =
+            case List.tail model.history of
+                Just t ->
+                    t
+
+                Nothing ->
+                    []
+    in
+        List.foldr updateHelper initModel tailOfHistory
+
+
+recordMsg : Msg -> Model -> Model
+recordMsg msg model =
+    { model | history = msg :: model.history }
 
 
 legalMove : Nonempty (Nonempty Cell) -> ( Int, Int ) -> Bool
@@ -200,9 +228,12 @@ view model =
                 _ ->
                     [ onClick Reset ]
     in
-        div attributes
-            [ text wintext
-            , board model
+        div []
+            [ div attributes
+                [ text wintext
+                , board model
+                ]
+            , button [ onClick Undo ] [ text "Undo" ]
             ]
 
 
@@ -263,7 +294,12 @@ drawCell y x value =
 
 init : ( Model, Cmd Msg )
 init =
-    Model X emptyBoard GameOn ! []
+    ( initModel, Cmd.none )
+
+
+initModel : Model
+initModel =
+    Model X emptyBoard GameOn []
 
 
 emptyBoard : Nonempty (Nonempty Cell)
