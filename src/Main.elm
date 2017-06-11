@@ -9,8 +9,14 @@ import List.Nonempty exposing (..)
 type alias Model =
     { turn : Mark
     , board : Nonempty (Nonempty Cell)
-    , winner : Maybe Mark
+    , gameStatus : Status
     }
+
+
+type Status
+    = GameOn
+    | Draw
+    | Winner Mark
 
 
 type Mark
@@ -33,7 +39,12 @@ update msg model =
     case msg of
         Place pos ->
             if legalMove model.board pos then
-                ( place model pos |> checkWin |> nextPlayersTurn, Cmd.none )
+                ( place model pos
+                    |> checkWin
+                    |> checkDraw
+                    |> nextPlayersTurn
+                , Cmd.none
+                )
             else
                 ( model, Cmd.none )
 
@@ -46,19 +57,34 @@ legalMove board ( x, y ) =
     get y board |> get x |> (==) E
 
 
+checkDraw : Model -> Model
+checkDraw model =
+    let
+        noEmptyCellOnRow =
+            all ((/=) E)
+
+        draw =
+            all noEmptyCellOnRow model.board
+    in
+        if draw then
+            { model | gameStatus = Draw }
+        else
+            model
+
+
 checkWin : Model -> Model
 checkWin model =
     let
         won =
             rowWin model.board || columnWin model.board || checkDiagonalWin model.board
 
-        winner =
+        newStatus =
             if won then
-                Just model.turn
+                Winner model.turn
             else
-                Nothing
+                GameOn
     in
-        { model | winner = winner }
+        { model | gameStatus = newStatus }
 
 
 checkDiagonalWin : Nonempty (Nonempty Cell) -> Bool
@@ -151,8 +177,8 @@ view : Model -> Html Msg
 view model =
     let
         wintext =
-            case model.winner of
-                Just a ->
+            case model.gameStatus of
+                Winner a ->
                     case a of
                         X ->
                             "X won!"
@@ -160,15 +186,18 @@ view model =
                         O ->
                             "O won!"
 
-                Nothing ->
+                GameOn ->
                     "Game is on"
 
+                Draw ->
+                    "It's a draw"
+
         attributes =
-            case model.winner of
-                Nothing ->
+            case model.gameStatus of
+                GameOn ->
                     []
 
-                Just _ ->
+                _ ->
                     [ onClick Reset ]
     in
         div attributes
@@ -234,7 +263,7 @@ drawCell y x value =
 
 init : ( Model, Cmd Msg )
 init =
-    Model X emptyBoard Nothing ! []
+    Model X emptyBoard GameOn ! []
 
 
 emptyBoard : Nonempty (Nonempty Cell)

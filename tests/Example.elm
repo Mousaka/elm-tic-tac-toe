@@ -109,9 +109,9 @@ suite =
                             Nonempty row1 [ row2, row3 ]
 
                         model =
-                            Main.Model X board Nothing
+                            Main.Model X board Main.GameOn
                     in
-                        Expect.equal (Just X) <| .winner <| checkWin model
+                        Expect.equal (Main.Winner X) <| .gameStatus <| checkWin model
             , test "Diagonal2 is win for O" <|
                 \_ ->
                     let
@@ -128,9 +128,9 @@ suite =
                             Nonempty row1 [ row2, row3 ]
 
                         model =
-                            Main.Model O board Nothing
+                            Main.Model O board Main.GameOn
                     in
-                        Expect.equal (Just O) <| .winner <| checkWin model
+                        Expect.equal (Main.Winner O) <| .gameStatus <| checkWin model
             ]
         , describe "Check win"
             [ test "why no win" <|
@@ -149,9 +149,9 @@ suite =
                             Nonempty row1 [ row2, row3 ]
 
                         model =
-                            Main.Model O board Nothing
+                            Main.Model O board Main.GameOn
                     in
-                        Expect.equal (Just O) <| .winner <| checkWin model
+                        Expect.equal (Main.Winner O) <| .gameStatus <| checkWin model
             ]
         ]
 
