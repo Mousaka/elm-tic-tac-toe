@@ -32,10 +32,18 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Place pos ->
-            ( place model pos |> checkWin |> nextPlayersTurn, Cmd.none )
+            if legalMove model.board pos then
+                ( place model pos |> checkWin |> nextPlayersTurn, Cmd.none )
+            else
+                ( model, Cmd.none )
 
         Reset ->
             init
+
+
+legalMove : Nonempty (Nonempty Cell) -> ( Int, Int ) -> Bool
+legalMove board ( x, y ) =
+    get y board |> get x |> (==) E
 
 
 checkWin : Model -> Model
@@ -119,7 +127,7 @@ nextPlayersTurn model =
 
 
 boardInsert : ( Int, Int ) -> Mark -> Nonempty (Nonempty Cell) -> Nonempty (Nonempty Cell)
-boardInsert ( x, y ) player board =
+boardInsert ( x, y ) mark board =
     let
         help newVal pred i val =
             if pred i then
@@ -128,7 +136,7 @@ boardInsert ( x, y ) player board =
                 val
 
         updateColumn =
-            help player (\n -> n == x)
+            help mark (\n -> n == x)
 
         updateRow i row =
             if i == y then
