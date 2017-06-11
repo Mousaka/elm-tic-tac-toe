@@ -42,7 +42,7 @@ checkWin : Model -> Model
 checkWin model =
     let
         won =
-            rowWin model.board || columnWin model.board
+            rowWin model.board || columnWin model.board || checkDiagonalWin model.board
 
         winner =
             if won then
@@ -51,6 +51,24 @@ checkWin model =
                 Nothing
     in
         { model | winner = winner }
+
+
+checkDiagonalWin : Nonempty (Nonempty Cell) -> Bool
+checkDiagonalWin board =
+    let
+        diagonal1 =
+            Nonempty (get 0 board |> get 0)
+                [ (get 1 board |> get 1)
+                , (get 2 board |> get 2)
+                ]
+
+        diagonal2 =
+            Nonempty (get 0 board |> get 2)
+                [ (get 1 board |> get 1)
+                , (get 2 board |> get 0)
+                ]
+    in
+        (rowWinHelper diagonal1) || (rowWinHelper diagonal2)
 
 
 columnWin : Nonempty (Nonempty Cell) -> Bool

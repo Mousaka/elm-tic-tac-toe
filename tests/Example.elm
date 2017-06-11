@@ -92,6 +92,46 @@ suite =
                     in
                         Expect.equal True <| columnWin board
             ]
+        , describe "Diagonal win"
+            [ test "Diagonal is win for X" <|
+                \_ ->
+                    let
+                        row1 =
+                            Nonempty (Marked X) [ E, E ]
+
+                        row2 =
+                            Nonempty (Marked X) [ (Marked X), E ]
+
+                        row3 =
+                            Nonempty (Marked O) [ E, Marked X ]
+
+                        board =
+                            Nonempty row1 [ row2, row3 ]
+
+                        model =
+                            Main.Model X board Nothing
+                    in
+                        Expect.equal (Just X) <| .winner <| checkWin model
+            , test "Diagonal2 is win for O" <|
+                \_ ->
+                    let
+                        row1 =
+                            Nonempty (Marked X) [ E, Marked O ]
+
+                        row2 =
+                            Nonempty (Marked X) [ Marked O, E ]
+
+                        row3 =
+                            Nonempty (Marked O) [ E, Marked X ]
+
+                        board =
+                            Nonempty row1 [ row2, row3 ]
+
+                        model =
+                            Main.Model O board Nothing
+                    in
+                        Expect.equal (Just O) <| .winner <| checkWin model
+            ]
         , describe "Check win"
             [ test "why no win" <|
                 \_ ->
