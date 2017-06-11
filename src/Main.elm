@@ -42,7 +42,7 @@ checkWin : Model -> Model
 checkWin model =
     let
         won =
-            foldl (\a b -> b || rowWin a) False model.board
+            rowWin model.board || columnWin model.board
 
         winner =
             if won then
@@ -53,8 +53,27 @@ checkWin model =
         { model | winner = winner }
 
 
-rowWin : Nonempty Cell -> Bool
-rowWin row =
+columnWin : Nonempty (Nonempty Cell) -> Bool
+columnWin board =
+    let
+        column : Int -> Nonempty Cell
+        column n =
+            map (\row -> get n row) board
+
+        columnW =
+            column >> rowWinHelper
+    in
+        List.map columnW [ 0, 1, 2 ]
+            |> List.any identity
+
+
+rowWin : Nonempty (Nonempty Cell) -> Bool
+rowWin board =
+    foldl (\a b -> b || rowWinHelper a) False board
+
+
+rowWinHelper : Nonempty Cell -> Bool
+rowWinHelper row =
     let
         first =
             head row

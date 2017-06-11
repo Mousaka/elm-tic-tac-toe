@@ -6,7 +6,7 @@ import Expect
 
 -- import Fuzz exposing (list, int, string)
 
-import Main exposing (place, emptyBoard, boardInsert, rowWin, checkWin, Cell(..), Mark(..))
+import Main exposing (place, emptyBoard, boardInsert, rowWinHelper, checkWin, columnWin, Cell(..), Mark(..))
 import List.Nonempty exposing ((:::), fromElement, Nonempty(..))
 
 
@@ -58,6 +58,40 @@ suite =
             , test "Row is not win because one is not like the other" <|
                 rowTest False (Nonempty (Marked X) [ (Marked X), (Marked O) ])
             ]
+        , describe "Column win"
+            [ test "Column is win for X" <|
+                \_ ->
+                    let
+                        row1 =
+                            Nonempty (Marked X) [ E, E ]
+
+                        row2 =
+                            Nonempty (Marked X) [ (Marked O), E ]
+
+                        row3 =
+                            row1
+
+                        board =
+                            Nonempty row1 [ row2, row3 ]
+                    in
+                        Expect.equal True <| columnWin board
+            , test "Column is win for O" <|
+                \_ ->
+                    let
+                        row1 =
+                            Nonempty (Marked X) [ E, Marked O ]
+
+                        row2 =
+                            Nonempty (Marked O) [ (Marked O), Marked O ]
+
+                        row3 =
+                            row1
+
+                        board =
+                            Nonempty row1 [ row2, row3 ]
+                    in
+                        Expect.equal True <| columnWin board
+            ]
         , describe "Check win"
             [ test "why no win" <|
                 \_ ->
@@ -84,4 +118,4 @@ suite =
 
 rowTest : Bool -> Nonempty Cell -> a -> Expect.Expectation
 rowTest expected row =
-    \_ -> Expect.equal expected <| rowWin row
+    \_ -> Expect.equal expected <| rowWinHelper row
