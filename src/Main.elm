@@ -72,6 +72,7 @@ undoLast model =
                 Nothing ->
                     []
     in
+        -- Coolest function in the hole app
         List.foldr updateHelper initModel tailOfHistory
 
 
